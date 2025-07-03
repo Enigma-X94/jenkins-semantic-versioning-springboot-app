@@ -6,13 +6,13 @@ pipeline{
     }
     stages{
         stage("build the jar"){
-            step{
+            steps{
                 echo "build the jar.... "
                 sh "mvn package"
             }
         }
         stage("build the image "){
-            step{
+            steps{
                 echo "building the image...."
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                 sh "docker -t build thedevopsrookie/test-app:jma-3.0 ."
@@ -22,7 +22,7 @@ pipeline{
             }
         }
         stage("deploy the image to docekr hub"){
-            step{
+            steps{
                 echo "deploying the image.... "
             }
         }
