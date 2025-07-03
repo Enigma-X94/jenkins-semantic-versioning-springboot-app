@@ -1,39 +1,29 @@
-#!/usr/bin/env groovy
-
-pipeline {
-    agent none
-    stages {
-        stage('test') {
-            steps {
-                script {
-                    echo "Testing the application..."
-                      echo  "executing pipeline for branch $BRANCH_NAME"
+pipeline{
+    agent any
+    tools{
+        jdk "jdk-17"
+        maven "Maven3"
+    }
+    stages{
+        stage("build the jar"){
+            step{
+                echo "build the jar.... "
+                sh "mvn package"
+            }
+        }
+        stage("build the image "){
+            step{
+                echo "building the image...."
+                withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                sh "docker -t build thedevopsrookie/test-app:jma-3.0 ."
+                sh "echo $PASS | docker login -u $USER --password-stdin"
+                sh "docker push thedevopsrookie/test-app:jma-3.0"
                 }
             }
         }
-        stage('build') {
-            when  {
-                expression   {
-                    BRANCH_NAME== 'master'
-                }
-            }
-            steps {
-                script {
-                    echo "Building the application..."
-                }
-            }
-        }
-
-        stage('deploy') {
-             when  {
-                expression   {
-                    BRANCH_NAME== 'master'
-                }
-            }
-            steps {
-                script {
-                    echo "Deploying the application..."
-                }
+        stage("deploy the image to docekr hub"){
+            step{
+                echo "deploying the image.... "
             }
         }
     }
