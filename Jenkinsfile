@@ -9,6 +9,7 @@ pipeline{
             steps{
                 echo "build the jar.... "
                 sh "mvn clean package"
+                sh "ls -lah target/"
             }
         }
         stage("build the image "){
