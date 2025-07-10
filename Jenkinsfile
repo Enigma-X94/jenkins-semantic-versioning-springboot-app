@@ -7,6 +7,7 @@ pipeline{
     stages{
         stage("increment app version"){
             steps{
+                script{
                 echo "ncrement app version...."
                 sh ''' mvn build-helper:parse-version version:set \
                 DnewVersion=${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}\
@@ -20,6 +21,7 @@ pipeline{
                 echo "Maven Project Version: ${version}"
 
                 IMAGE_NAME= "${newVersion}.${BUILD.NUMBER}"
+                }
             }
         }
         stage("build the jar"){
