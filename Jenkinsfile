@@ -14,7 +14,7 @@ pipeline{
                 versions:commit'''
 
                 def newVersion= sh(
-                    script:'mvn help:evaluate -Dexpression=project.version -DforceStdout',
+                    script:'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                     returnStdout: true
                 ).trim()
 
