@@ -18,9 +18,9 @@ pipeline{
                     returnStdout: true
                 ).trim()
 
-                echo "Maven Project Version: ${version}"
+                echo "Maven Project Version: ${newVersion}"
 
-                env.IMAGE_NAME= "${newVersion}.${BUILD.NUMBER}"
+                env.IMAGE_NAME= "${newVersion}.${env.BUILD.NUMBER}"
                 }
             }
         }
