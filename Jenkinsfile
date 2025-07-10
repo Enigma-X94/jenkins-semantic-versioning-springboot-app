@@ -10,11 +10,11 @@ pipeline{
                 script{
                 echo "ncrement app version...."
                 sh ''' mvn build-helper:parse-version versions:set \
-                DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'\
+                -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'\
                 versions:commit'''
 
                 def newVersion= sh(
-                    script:'mvn help:evaluate - Dexpression=project.version -DforceStdout',
+                    script:'mvn help:evaluate -Dexpression=project.version -DforceStdout',
                     returnStdout: true
                 ).trim()
 
