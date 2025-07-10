@@ -4,6 +4,9 @@ pipeline{
         jdk "jdk-17"
         maven "Maven3"
     }
+    environment{
+          DOCKER_BUILDKIT = '1'
+    }
     stages{
         stage("increment app version"){
             steps{
@@ -35,7 +38,7 @@ pipeline{
             steps{
                 echo "building the image...."
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                sh "echo $PASS | docker login -u $USER --password-stdin"
+                sh '''echo "$PASS" | docker login -u "$USER" --password-stdin'''
                 sh "docker build -t thedevopsrookie/test-app:${IMAGE_NAME} ."
                 }
             }
