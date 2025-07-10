@@ -20,7 +20,7 @@ pipeline{
 
                 echo "Maven Project Version: ${newVersion}"
 
-                env.IMAGE_NAME= "${newVersion}.${env.BUILD.NUMBER}"
+                env.IMAGE_NAME= "${newVersion}.${env.BUILD_NUMBER}"
                 }
             }
         }
