@@ -63,6 +63,7 @@ pipeline{
                         sh 'git add .'
                         sh 'git commit -m "ci: version bump (update pom.xml version)"'
                         sh 'git push origin HEAD:master'
+                    }
                 }
 
             }
