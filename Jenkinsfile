@@ -54,9 +54,6 @@ pipeline{
             steps{
                 script{
                     withCredentials([usernamePassword(credentialsId: 'gitlab-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh 'git status'
-                        sh 'git branch'
-                        sh 'git config --list'
                         sh "git remote set-url origin https://${USER}:${PASS}@gitlab.com/naswd/java-maven-app.git"
                         sh 'git add .'
                         sh 'git commit -m "ci: version bump (update pom.xml version)"'
