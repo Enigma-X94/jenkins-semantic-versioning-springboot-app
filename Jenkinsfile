@@ -8,6 +8,20 @@ pipeline{
           DOCKER_BUILDKIT = '1'
     }
     stages{
+        stage{
+            steps{
+                script{
+                    def lastCommitMsg = sh{script: "git log -1 --pretty=%B", returnStdout: true}.trim()
+                    def lastCommiter =  sh{script: "git log --pretty=%ae",returnStdout: true}.trim()
+
+                    if(lasCommitMsg.contains('[ci skip]') && lastCommiter == 'jenkins@EnigmaPC.localdomain'){
+                        echo "Build triggered by CI version bump commit. Skipping build."
+                        currentBuild.result = 'SUCCESS'
+                        return
+                    }
+                }
+            }
+        }
         stage("increment app version"){
             steps{
                 script{
@@ -54,9 +68,11 @@ pipeline{
             steps{
                 script{
                     withCredentials([usernamePassword(credentialsId: 'gitlab-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh "git config user.email 'jenkins@EnigmaPC.localdomain'"
+                        sh "git config user.name 'Jenkins'"
                         sh "git remote set-url origin https://${USER}:${PASS}@gitlab.com/naswd/java-maven-app.git"
                         sh 'git add .'
-                        sh 'git commit -m "ci: version bump (update pom.xml version)"'
+                        sh 'git commit -m "ci: version bump (update pom.xml version) [ci skip]" || echo "No changes to commit"'
                         sh 'git push origin HEAD:master'
                     }
                 }
