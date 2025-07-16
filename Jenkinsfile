@@ -6,9 +6,10 @@ pipeline{
     }
     environment{
           DOCKER_BUILDKIT = '1'
+          SKIP_BUILD = "false"
     }
     stages{
-        stage("checking..."){
+        stage("checking for ci skip"){
             steps{
                 script{
                     def lastCommitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
@@ -16,13 +17,18 @@ pipeline{
 
                     if(lastCommitMsg.contains('[ci skip]') && lastCommiter == 'jenkins@EnigmaPC.localdomain'){
                         echo "Build triggered by CI version bump commit. Skipping build."
-                        currentBuild.result = 'SUCCESS'
-                        return
+                        currentBuild.description = 'skipped by [ci skip]'
+                        env.SKIP_BUILD ="true"
                     }
                 }
             }
         }
         stage("increment app version"){
+            when{
+                expression{
+                    env.SKIP_BUILD != "true"
+                }
+            }
             steps{
                 script{
                 echo "ncrement app version...."
@@ -42,6 +48,11 @@ pipeline{
             }
         }
         stage("build the jar"){
+            when{
+                expression{
+                    env.SKIP_BUILD != "true"
+                }
+            }
             steps{
                 echo "build the jar.... "
                 sh "mvn clean package"
@@ -49,6 +60,11 @@ pipeline{
             }
         }
         stage("build the image "){
+            when{
+                expression{
+                    env.SKIP_BUILD != "true"
+                }
+            }
             steps{
                 echo "building the image...."
                 withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
@@ -58,6 +74,11 @@ pipeline{
             }
         }
         stage("deploy the image to docker hub"){
+            when{
+                expression{
+                    env.SKIP_BUILD != "true"
+                }
+            }
             steps{
                 echo "deploying the image.... "
                 sh "docker push thedevopsrookie/test-app:${IMAGE_NAME}"
@@ -65,6 +86,11 @@ pipeline{
             }
         }
         stage("commit version update"){
+            when{
+                expression{
+                    env.SKIP_BUILD != "true"
+                }
+            }
             steps{
                 script{
                     withCredentials([usernamePassword(credentialsId: 'gitlab-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
