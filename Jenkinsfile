@@ -8,7 +8,7 @@ pipeline{
           DOCKER_BUILDKIT = '1'
     }
     stages{
-        stage{
+        stage("checking..."){
             steps{
                 script{
                     def lastCommitMsg = sh{script: "git log -1 --pretty=%B", returnStdout: true}.trim()
