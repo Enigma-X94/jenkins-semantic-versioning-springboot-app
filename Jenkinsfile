@@ -11,10 +11,10 @@ pipeline{
         stage("checking..."){
             steps{
                 script{
-                    def lastCommitMsg = sh{script: "git log -1 --pretty=%B", returnStdout: true}.trim()
-                    def lastCommiter =  sh{script: "git log --pretty=%ae",returnStdout: true}.trim()
+                    def lastCommitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
+                    def lastCommiter =  sh(script: "git log -1 --pretty=%ae",returnStdout: true).trim()
 
-                    if(lasCommitMsg.contains('[ci skip]') && lastCommiter == 'jenkins@EnigmaPC.localdomain'){
+                    if(lastCommitMsg.contains('[ci skip]') && lastCommiter == 'jenkins@EnigmaPC.localdomain'){
                         echo "Build triggered by CI version bump commit. Skipping build."
                         currentBuild.result = 'SUCCESS'
                         return
