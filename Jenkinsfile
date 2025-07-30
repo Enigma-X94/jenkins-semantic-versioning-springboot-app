@@ -66,7 +66,7 @@ pipeline{
         stage("build the image "){
             when{
                 expression{
-                    env.SKIP_BUILD != "true"
+                    return !skipBuild
                 }
             }
             steps{
