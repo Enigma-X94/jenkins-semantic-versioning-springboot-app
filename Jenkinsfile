@@ -20,7 +20,7 @@ pipeline{
                         echo "Build triggered by CI version bump commit. Skipping build."
                         currentBuild.description = 'skipped by [ci skip]'
                         skipBuild =true
-                        echo"**********************************************"
+                        echo"*********************************************************"
                         echo "skipBuild value is now: ${skipBuild}"
                         echo"*********************************************************"
                     }
