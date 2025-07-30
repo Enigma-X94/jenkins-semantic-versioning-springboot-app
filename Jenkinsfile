@@ -1,3 +1,4 @@
+define skipBuild = false
 pipeline{
     agent any
     tools{
@@ -18,7 +19,8 @@ pipeline{
                     if(lastCommitMsg.contains('[ci skip]') && lastCommiter == 'jenkins@EnigmaPC.localdomain'){
                         echo "Build triggered by CI version bump commit. Skipping build."
                         currentBuild.description = 'skipped by [ci skip]'
-                        env.SKIP_BUILD ="true"
+                        skipBuild =true
+                        echo "skipBuild value is now: ${skipBuild}"
                     }
                 }
             }
@@ -26,7 +28,7 @@ pipeline{
         stage("increment app version"){
             when{
                 expression{
-                    env.SKIP_BUILD != "true"
+                    return !skipBuild
                 }
             }
             steps{
@@ -50,7 +52,7 @@ pipeline{
         stage("build the jar"){
             when{
                 expression{
-                    env.SKIP_BUILD != "true"
+                  return !skipBuild
                 }
             }
             steps{
@@ -76,7 +78,7 @@ pipeline{
         stage("deploy the image to docker hub"){
             when{
                 expression{
-                    env.SKIP_BUILD != "true"
+                    return !skipBuild
                 }
             }
             steps{
@@ -88,7 +90,7 @@ pipeline{
         stage("commit version update"){
             when{
                 expression{
-                    env.SKIP_BUILD != "true"
+                   return !skipBuild
                 }
             }
             steps{
