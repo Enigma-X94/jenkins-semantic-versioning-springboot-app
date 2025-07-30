@@ -1,4 +1,4 @@
-define skipBuild = false
+def skipBuild = false
 pipeline{
     agent any
     tools{
