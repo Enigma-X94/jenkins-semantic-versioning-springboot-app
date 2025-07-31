@@ -5,6 +5,12 @@ pipeline{
         jdk "jdk-17"
         maven "Maven3"
     }
+    parameters{
+        choice( name:'VERSION_TYPE', 
+                choices:['major','minor','patch','none'], 
+                description:'Select version bump type'
+        )
+    }
     environment{
           DOCKER_BUILDKIT = '1'
           DOCKER_REGISTRY = 'thedevopsrookie'
@@ -39,35 +45,51 @@ pipeline{
         stage("Increment app version"){
             when{
                 expression{
-                    return !skipBuild
+                    return !skipBuild && params.VERSION_TYPE != 'none'
                 }
             }
             steps{
                 script{
-                    echo "Incrementing app version...."
+                    echo "Incrementing app version -Type: ${params.VERSION_TYPE}"
                     try{
-                    sh ''' mvn build-helper:parse-version versions:set \
-                    -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'\
-                    versions:commit'''
+                        def versionCmd = ""
+                        switch(params.VERSION_TYPE){
+                            case:'major'
+                                // 1.2.3 => 2.0.0
+                                versionCmd = '${parsedVersion.nextMajorVersion}.0.0'
+                            break
+                            case:'minor'
+                                // 1.2.3 => 1.3.0
+                                versionCmd = '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
+                            break
+                            case:'patch'
+                                // 1.2.3 => 1.2.4
+                                versionCmd = '${parsedVersion.majorVersion}.${parsedVersion.majorVersion}.${parsedVersion.nextIncrementalVersion}'
+                            break
+                        }
+                        sh """  mvn build-helper:parse-version versions:set \
+                                -DnewVersion='${versionCmd}' \
+                                versions:commit 
+                           """
 
-                    def newVersion= sh(
-                        script:'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-                        returnStdout: true
-                    ).trim()
+                        def newVersion= sh(
+                            script:'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                            returnStdout: true
+                        ).trim()
 
-                    if(!newVersion){
-                        error "Failed to retrieve maven version"
-                    }
+                        if(!newVersion){
+                            error "Failed to retrieve maven version"
+                        }
 
-                    echo "Maven Project New Version: ${newVersion}"
-                    env.IMAGE_NAME = "${newVersion}-${env.BUILD_NUMBER}"
-                    env.IMAGE_TAG = "${DOCKER_REGISTRY}/${APP_NAME}:${env.IMAGE_NAME}"
+                        echo "Maven Project New Version: ${newVersion}"
+                        env.IMAGE_NAME = "${newVersion}-${env.BUILD_NUMBER}"
+                        env.IMAGE_TAG = "${DOCKER_REGISTRY}/${APP_NAME}:${env.IMAGE_NAME}"
 
-                    currentBuild.description = "VERSION: ${newVersion}"
+                        currentBuild.description = "${params.VERSION_TYPE.toUpperCase()} VERSION:${newVersion}"
 
-                    
+                        
                     }catch(Exception){
-
+                        error "Failed to increment version: ${e.message}"
                     }
                 }
                 
@@ -122,7 +144,7 @@ pipeline{
         stage("Commit version update"){
             when{
                 expression{
-                   return !skipBuild
+                   return !skipBuild && params.VERSION_TYPE != 'none'
                 }
             }
             steps{
@@ -141,7 +163,7 @@ pipeline{
                         if(changes){
                             sh ''' 
                             git add pom.xml
-                            git commit -m "[ci skip] Automated version bump
+                            git commit -m "[ci skip] Automated version bump ${params.VERSION_TYPE} 
                             - Updated project version
                             - Build: ${BUILD_NUMBER}
                             - Triggered by: ${BUILD_URL}"
