@@ -18,7 +18,7 @@ pipeline{
                     def lastCommiter =  sh(script: "git log -1 --pretty=%ae",returnStdout: true).trim()
                     echo "=== Commit Information ==="
                     echo "Last commit message: ${lastCommitMsg}"
-                    echo "Last committer: ${lastCommitter}"
+                    echo "Last committer: ${lastCommiter}"
 
                     def skipPatternsList = ['[ci skip]', '[skip ci]']
 
