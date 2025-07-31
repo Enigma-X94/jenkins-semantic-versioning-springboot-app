@@ -11,7 +11,7 @@ pipeline{
           APP_NAME= 'test'
     }
     stages{
-        stage("Checking for ci skip"){
+        stage("Checking for ci skip testing for ci"){
             steps{
                 script{
                     def lastCommitMsg = sh(script: "git log -1 --pretty=%B", returnStdout: true).trim()
