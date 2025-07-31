@@ -171,7 +171,7 @@ pipeline{
         failure {
             echo "Pipeline failed!"
         }
-        skipped {
+        notBuilt {
             echo "Pipeline was skipped"
         }
     }
