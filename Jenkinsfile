@@ -141,10 +141,10 @@ pipeline{
                         if(changes){
                             sh ''' 
                             git add pom.xml
-                            git commit -m [ci skip] Automated version bump
+                            git commit -m "[ci skip] Automated version bump
                             - Updated project version
                             - Build: ${BUILD_NUMBER}
-                            - Triggered by: ${BUILD_URL}
+                            - Triggered by: ${BUILD_URL}"
                             '''
                         sh 'git push origin HEAD:master'
                         echo "Version update commited and pushed"
