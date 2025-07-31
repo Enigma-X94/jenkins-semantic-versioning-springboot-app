@@ -54,15 +54,15 @@ pipeline{
                     try{
                         def versionCmd = ""
                         switch(params.VERSION_TYPE){
-                            case:'major'
+                            case 'major':
                                 // 1.2.3 => 2.0.0
                                 versionCmd = '${parsedVersion.nextMajorVersion}.0.0'
                             break
-                            case:'minor'
+                            case 'minor' :
                                 // 1.2.3 => 1.3.0
                                 versionCmd = '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
                             break
-                            case:'patch'
+                            case 'patch':
                                 // 1.2.3 => 1.2.4
                                 versionCmd = '${parsedVersion.majorVersion}.${parsedVersion.majorVersion}.${parsedVersion.nextIncrementalVersion}'
                             break
