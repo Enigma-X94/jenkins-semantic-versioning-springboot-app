@@ -44,31 +44,33 @@ pipeline{
             }
             steps{
                 script{
-                echo "Incrementing app version...."
-                try{
-                sh ''' mvn build-helper:parse-version versions:set \
-                -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'\
-                versions:commit'''
+                    echo "Incrementing app version...."
+                    try{
+                    sh ''' mvn build-helper:parse-version versions:set \
+                    -DnewVersion='${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.nextIncrementalVersion}'\
+                    versions:commit'''
 
-                def newVersion= sh(
-                    script:'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-                    returnStdout: true
-                ).trim()
+                    def newVersion= sh(
+                        script:'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                        returnStdout: true
+                    ).trim()
 
-                if(!newVersion){
-                    error "Failed to retrieve maven version"
+                    if(!newVersion){
+                        error "Failed to retrieve maven version"
+                    }
+
+                    echo "Maven Project New Version: ${newVersion}"
+                    env.IMAGE_NAME = "${newVersion}-${env.BUILD_NUMBER}"
+                    env.IMAGE_TAG = "${DOCKER_REGISTRY}/${APP_NAME}:${env.IMAGE_NAME}"
+
+                    currentBuild.description = "VERSION: ${newVersion}"
+
+                    
+                    }catch(Exception){
+
+                    }
                 }
-
-                echo "Maven Project New Version: ${newVersion}"
-                env.IMAGE_NAME = "${newVersion}-${env.BUILD_NUMBER}"
-                env.IMAGE_TAG = "${DOCKER_REGISTRY}/${APP_NAME}:${env.IMAGE_NAME}"
-
-                currentBuild.description = "VERSION: ${newVersion}"
-
-                }
-                catch(Exception){
-
-                }
+                
             }
         }
         stage("Build the jar"){
