@@ -1,0 +1,139 @@
+pipeline {
+    agent any
+    tools {
+        jdk 'jdk-17'
+        maven 'Maven3'
+    }
+    parameters {
+        choice(name:'VERSION_TYPE',
+                choices:['major', 'minor', 'patch'],
+                description:'Select version bump type'
+        )
+        booleanParam(
+            name: 'CREATE_TAG',
+            defaultValue: true,
+            description: 'Create Git tag for this release?'
+        )
+    }
+    environment {
+        DOCKER_BUILDKIT = '1'
+        DOCKER_REGISTRY = 'thedevopsrookie'
+        APP_NAME = 'test'
+    }
+    stages {
+        stage('Pre-Release check') {
+            steps {
+                def currentBranch = sh(script: 'git rev-parse --abrev-ref HEAD', returnStdout: true).trim()
+                if (currentBranch != 'master' && currentBranch != 'main') {
+                    error "Releases can only be made from master/main branch. Current: ${currentBranch}"
+                }
+                def currentVersion = sh(
+                        script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                        returnStdout: true
+                ).trim()
+                echo "Current version: ${currentVersion}"
+                echo "Version bump type: ${params.VERSION_TYPE}"
+            }
+        }
+        stage('Increment app version') {
+            steps {
+                script {
+                    echo "Incrementing app version -Type: ${params.VERSION_TYPE}"
+                    try {
+                        def versionCmd = ""
+                        switch (params.VERSION_TYPE) {
+                            case 'major':
+                                versionCmd = String.format('%d.0.0', parsedVersion.nextMajorVersion.toInteger())
+                                break
+                            case 'minor':
+                                versionCmd = String.format('%d.%d.0', parsedVersion.majorVersion.toInteger(), parsedVersion.nextMinorVersion.toInteger())
+                                break
+                            case 'patch':
+                                versionCmd = String.format('%d.%d.%d', parsedVersion.majorVersion.toInteger(), parsedVersion.minorVersion.toInteger(), parsedVersion.nextIncrementalVersion.toInteger())
+                                break
+                        }
+                        sh """  mvn build-helper:parse-version versions:set \
+                                -DnewVersion='${versionCmd}' \
+                                versions:commit
+                           """
+
+                        def newVersion = sh(
+                            script:'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                            returnStdout: true
+                        ).trim()
+
+                        if (!newVersion) {
+                            error 'Failed to retrieve maven version'
+                        }
+
+                        echo "Maven Project New Version: ${env.newVersion}"
+                        currentBuild.description = "${params.VERSION_TYPE.toUpperCase()} VERSION:${newVersion}"
+                    }catch (Exception) {
+                        error "Failed to increment version: ${e.message}"
+                    }
+                }
+            }
+        }
+
+        stage('Build Release') {
+            steps {
+                echo 'Building release artifacts...'
+                sh 'mvn clean package'
+            }
+        }
+        stage('Build & Push Docker') {
+            steps {
+                echo 'Building release Docker image...'
+                script {
+                    def releaseTag = "${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}"
+                    withCredentials([usernamePassword(credentialsId: 'gitlab-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh "echo '$PASS' | docker login -u '$USER' --password-stdin"
+
+                        sh "docker build -t ${releaseTag} ."
+
+                        sh "docker push ${releaseTag}"
+                    }
+                    echo "image Release pushed: ${env.NEW_VERSION}"
+                }
+            }
+        }
+        stage('Git commit & tag'){
+            steps{
+                script{
+                    withCredentials([usernamePassword(credentialsId: 'gitlab-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                        sh " git config user.email 'jenkins@EnigmaPC.localdomain' "
+                        sh " git config user.name 'Jenkins'"
+                        sh " git remote set-url origin https://${USER}:${PASS}@gitlab.com/naswd/java-maven-app.git "
+                        sh """ git add pom.xml
+                            git commit -m "Release version ${env.NEW_VERSION}
+                            Version bump type : ${params.VERSION_TYPE}"
+                           """
+                        if [ "${params.CREATE_TAG}" = "true" ]; then
+                                git tag -a "v${env.NEW_VERSION}" -m "Release version ${env.NEW_VERSION}"
+                                git push origin "v${env.NEW_VERSION}"
+                        fi
+                        sh " git push origin HEAD:master "
+
+                    }
+                }
+            }
+        }
+        post {
+            always {
+                cleanWs()
+                sh 'docker logout || true'
+            }
+            success {
+                echo """
+                Release ${env.NEW_VERSION} completed successfully!
+                
+                Docker Image: ${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}
+                Git Tag: v${env.NEW_VERSION}
+                """
+            }
+            failure {
+                echo " Release failed! "
+            }
+        }
+    
+}
