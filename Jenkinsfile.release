@@ -120,22 +120,23 @@ pipeline {
                 }
             }
         }
-        post {
-            always {
-                cleanWs()
-                sh 'docker logout || true'
-            }
-            success {
-                echo """
-                Release ${env.NEW_VERSION} completed successfully!
-                
-                Docker Image: ${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}
-                Git Tag: v${env.NEW_VERSION}
-                """
-            }
-            failure {
-                echo " Release failed! "
-            }
+    }
+    post {
+        always {
+            cleanWs()
+            sh 'docker logout || true'
         }
-    }   
+        success {
+            echo """
+            Release ${env.NEW_VERSION} completed successfully!
+            
+            Docker Image: ${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}
+            Git Tag: v${env.NEW_VERSION}
+            """
+        }
+        failure {
+            echo " Release failed! "
+        }
+    }
+      
 }
