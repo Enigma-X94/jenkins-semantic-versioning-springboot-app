@@ -93,7 +93,7 @@ pipeline {
                 echo 'Building release Docker image...'
                 script {
                     def releaseTag = "${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}"
-                    withCredentials([usernamePassword(credentialsId: 'gitlab-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh "echo '$PASS' | docker login -u '$USER' --password-stdin"
 
                         sh "docker build -t ${releaseTag} ."
