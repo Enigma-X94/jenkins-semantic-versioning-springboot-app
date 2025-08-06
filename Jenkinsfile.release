@@ -24,7 +24,7 @@ pipeline {
         stage('Pre-Release check') {
             steps {
                 script{
-                def currentBranch = sh(script: 'git rev-parse --abrev-ref HEAD', returnStdout: true).trim()
+                def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                 if (currentBranch != 'master' && currentBranch != 'main') {
                     error "Releases can only be made from master/main branch. Current: ${currentBranch}"
                 }
