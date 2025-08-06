@@ -122,6 +122,7 @@ pipeline {
                                 sh "git push origin v${env.NEW_VERSION}"
                         }
                         sh " git push origin HEAD:master "
+                        sh "git checkout master"
 
                     }
                 }
