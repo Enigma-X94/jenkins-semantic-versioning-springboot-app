@@ -64,8 +64,8 @@ pipeline {
                                 versions:commit
                            """
 
-                        def newVersion = sh(
-                            script: "mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -E '^[0-9]+\\.[0-9]+\\.[0-9]+' | head -1",
+                       def newVersion = sh(
+                            script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -E "^[0-9]+\\.[0-9]+\\.[0-9]+" | head -1',
                             returnStdout: true
                         ).trim()
 
