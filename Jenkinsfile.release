@@ -24,8 +24,7 @@ pipeline {
         stage('Pre-Release check') {
             steps {
                 script{
-                    sh 'git checkout master'
-                    def currentBranch = env.BRANCH_NAME ?: sh(script: "git name-rev --name-only HEAD", returnStdout: true).trim()
+                    def currentBranch = env.BRANCH_NAME
                     //def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     currentBranch = currentBranch.replaceAll('remotes/origin/', '')
                     if (currentBranch != 'master' && currentBranch != 'main') {
@@ -123,6 +122,8 @@ pipeline {
                                 sh "git push origin v${env.NEW_VERSION}"
                         }
                         sh " git push origin HEAD:master "
+                        //sh 'git checkout master'
+
 
                     }
                 }
