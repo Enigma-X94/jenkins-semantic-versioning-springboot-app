@@ -108,10 +108,10 @@ pipeline {
                             git commit -m "Release version ${env.NEW_VERSION}
                             Version bump type : ${params.VERSION_TYPE}"
                            """
-                        if [ "${params.CREATE_TAG}" = "true" ]; then
+                        if (params.CREATE_TAG == "true" ){
                                 git tag -a "v${env.NEW_VERSION}" -m "Release version ${env.NEW_VERSION}"
                                 git push origin "v${env.NEW_VERSION}"
-                        fi
+                        }
                         sh " git push origin HEAD:master "
 
                     }
