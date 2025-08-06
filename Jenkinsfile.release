@@ -72,7 +72,7 @@ pipeline {
 
                         echo "Maven Project New Version: ${env.newVersion}"
                         currentBuild.description = "${params.VERSION_TYPE.toUpperCase()} VERSION:${newVersion}"
-                    }catch (Exception) {
+                    }catch (Exception e) {
                         error "Failed to increment version: ${e.message}"
                     }
                 }
