@@ -47,14 +47,17 @@ pipeline {
                         def versionCmd = ""
                         switch (params.VERSION_TYPE) {
                             case 'major':
-                                versionCmd = String.format('%d.0.0', parsedVersion.nextMajorVersion.toInteger())
-                                break
-                            case 'minor':
-                                versionCmd = String.format('%d.%d.0', parsedVersion.majorVersion.toInteger(), parsedVersion.nextMinorVersion.toInteger())
-                                break
+                                // 1.2.3 => 2.0.0
+                                versionCmd = '${parsedVersion.nextMajorVersion}.0.0'
+                            break
+                            case 'minor' :
+                                // 1.2.3 => 1.3.0
+                                versionCmd = '${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0'
+                            break
                             case 'patch':
-                                versionCmd = String.format('%d.%d.%d', parsedVersion.majorVersion.toInteger(), parsedVersion.minorVersion.toInteger(), parsedVersion.nextIncrementalVersion.toInteger())
-                                break
+                                // 1.2.3 => 1.2.4
+                                versionCmd = '${parsedVersion.majorVersion}.${parsedVersion.majorVersion}.${parsedVersion.nextIncrementalVersion}'
+                            break
                         }
                         sh """  mvn build-helper:parse-version versions:set \
                                 -DnewVersion='${versionCmd}' \
