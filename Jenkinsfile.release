@@ -64,6 +64,11 @@ pipeline {
                                 versions:commit
                            """
 
+                        def rawVersion = sh(
+                            script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                            returnStdout: true
+                        )
+                        echo "Raw Maven version output: ${rawVersion}"
                        def newVersion = sh(
                             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -E "^[0-9]+\\.[0-9]+\\.[0-9]+" | head -1',
                             returnStdout: true
