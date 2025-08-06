@@ -24,17 +24,18 @@ pipeline {
         stage('Pre-Release check') {
             steps {
                 script{
-                def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                if (currentBranch != 'master' && currentBranch != 'main') {
-                    error "Releases can only be made from master/main branch. Current: ${currentBranch}"
-                }
-                def currentVersion = sh(
-                        script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-                        returnStdout: true
-                ).trim()
-                echo "Current version: ${currentVersion}"
-                echo "Version bump type: ${params.VERSION_TYPE}"
-                }
+                    def currentBranch = env.BRANCH_NAME ?: sh(script: "git name-rev --name-only HEAD", returnStdout: true).trim()
+                    //def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
+                    if (currentBranch != 'master' && currentBranch != 'main') {
+                        error "Releases can only be made from master/main branch. Current: ${currentBranch}"
+                    }
+                    def currentVersion = sh(
+                            script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
+                            returnStdout: true
+                    ).trim()
+                    echo "Current version: ${currentVersion}"
+                    echo "Version bump type: ${params.VERSION_TYPE}"
+                    }
             }
         }
         stage('Increment app version') {
