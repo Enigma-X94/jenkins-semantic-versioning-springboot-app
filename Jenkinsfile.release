@@ -64,13 +64,10 @@ pipeline {
                                 versions:commit
                            """
 
-                        def rawVersion = sh(
-                            script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
-                            returnStdout: true
-                        )
-                        echo "Raw Maven version output: ${rawVersion}"
+                      
+                       
                        def newVersion = sh(
-                            script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout | grep -E "^[0-9]+\\.[0-9]+\\.[0-9]+" | head -1',
+                            script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout ',
                             returnStdout: true
                         ).trim()
 
@@ -78,7 +75,7 @@ pipeline {
                             error 'Failed to retrieve maven version'
                         }
 
-                        echo "Maven Project New Version: ${env.newVersion}"
+                        echo "Maven Project New Version: ${newVersion}"
                         currentBuild.description = "${params.VERSION_TYPE.toUpperCase()} VERSION:${newVersion}"
                     }catch (Exception e) {
                         error "Failed to increment version: ${e.message}"
@@ -97,7 +94,7 @@ pipeline {
             steps {
                 echo 'Building release Docker image...'
                 script {
-                    def releaseTag = "${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}"
+                    def releaseTag = "${DOCKER_REGISTRY}/${APP_NAME}:${newVersion}"
                     withCredentials([usernamePassword(credentialsId: 'docker-cred', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
                         sh "echo '$PASS' | docker login -u '$USER' --password-stdin"
 
@@ -105,7 +102,7 @@ pipeline {
 
                         sh "docker push ${releaseTag}"
                     }
-                    echo "image Release pushed: ${env.NEW_VERSION}"
+                    echo "image Release pushed: ${newVersion}"
                 }
             }
         }
@@ -117,12 +114,12 @@ pipeline {
                         sh " git config user.name 'Jenkins'"
                         sh " git remote set-url origin https://${USER}:${PASS}@gitlab.com/naswd/java-maven-app.git "
                         sh """ git add pom.xml
-                            git commit -m "Release version ${env.NEW_VERSION}
+                            git commit -m "Release version ${newVersion}
                             Version bump type : ${params.VERSION_TYPE}"
                            """
                         if (params.CREATE_TAG == "true" ){
-                                git tag -a "v${env.NEW_VERSION}" -m "Release version ${env.NEW_VERSION}"
-                                git push origin "v${env.NEW_VERSION}"
+                                git tag -a "v${newVersion}" -m "Release version ${newVersion}"
+                                git push origin "v${newVersion}"
                         }
                         sh " git push origin HEAD:master "
 
@@ -138,10 +135,10 @@ pipeline {
         }
         success {
             echo """
-            Release ${env.NEW_VERSION} completed successfully!
+            Release ${newVersion} completed successfully!
             
-            Docker Image: ${DOCKER_REGISTRY}/${APP_NAME}:${env.NEW_VERSION}
-            Git Tag: v${env.NEW_VERSION}
+            Docker Image: ${DOCKER_REGISTRY}/${APP_NAME}:${newVersion}
+            Git Tag: v${newVersion}
             """
         }
         failure {
