@@ -26,7 +26,7 @@ pipeline {
                 script{
                     def currentBranch = env.BRANCH_NAME
                     //def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                    currentBranch = currentBranch.replaceAll('remotes/origin/', '')
+                    //currentBranch = currentBranch.replaceAll('remotes/origin/', '')
                     if (currentBranch != 'master' && currentBranch != 'main') {
                         error "Releases can only be made from master/main branch. Current: ${currentBranch}"
                     }
