@@ -24,17 +24,19 @@ pipeline {
         stage('Pre-Release check') {
             steps {
                 script{
-                    def currentBranch = env.BRANCH_NAME
-                    if (!currentBranch) {
-                        // Si BRANCH_NAME n'est pas défini, on tente de deviner avec git
-                        currentBranch = sh(script: "git name-rev --name-only HEAD", returnStdout: true).trim()
-                        currentBranch = currentBranch.replaceAll('remotes/origin/', '')
+                    def onMaster = sh(
+                            script: "git branch -r --contains HEAD | grep -E '(origin/master|origin/main)'",
+                            returnStatus: true
+                    ) == 0
+
+                    if (!onMaster) {
+                        error "Releases can only be made from master/main branch!"
                     }
                     //def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     //currentBranch = currentBranch.replaceAll('remotes/origin/', '')
-                    if (currentBranch != 'master' && currentBranch != 'main') {
+                    /*if (currentBranch != 'master' && currentBranch != 'main') {
                         error "Releases can only be made from master/main branch. Current: ${currentBranch}"
-                    }
+                    }*/
                     def currentVersion = sh(
                             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                             returnStdout: true
