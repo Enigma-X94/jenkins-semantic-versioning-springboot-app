@@ -25,6 +25,11 @@ pipeline {
             steps {
                 script{
                     def currentBranch = env.BRANCH_NAME
+                    if (!currentBranch) {
+                        // Si BRANCH_NAME n'est pas défini, on tente de deviner avec git
+                        currentBranch = sh(script: "git name-rev --name-only HEAD", returnStdout: true).trim()
+                        currentBranch = currentBranch.replaceAll('remotes/origin/', '')
+                    }
                     //def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
                     //currentBranch = currentBranch.replaceAll('remotes/origin/', '')
                     if (currentBranch != 'master' && currentBranch != 'main') {
