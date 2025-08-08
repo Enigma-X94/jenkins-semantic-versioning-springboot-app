@@ -30,13 +30,8 @@ pipeline {
                     ) == 0
 
                     if (!onMaster) {
-                        error "Releases can only be made from master/main branch!"
+                        error "Releases can only be made from master/main branch! Current: ${currentBranch}"
                     }
-                    //def currentBranch = sh(script: 'git rev-parse --abbrev-ref HEAD', returnStdout: true).trim()
-                    //currentBranch = currentBranch.replaceAll('remotes/origin/', '')
-                    /*if (currentBranch != 'master' && currentBranch != 'main') {
-                        error "Releases can only be made from master/main branch. Current: ${currentBranch}"
-                    }*/
                     def currentVersion = sh(
                             script: 'mvn help:evaluate -Dexpression=project.version -q -DforceStdout',
                             returnStdout: true
