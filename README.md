@@ -1,4 +1,4 @@
-# 🚀 CI pipeline with  Automated Semantic Versioning with Jenkins for Spring Boot 
+# 🚀 CI pipeline with  Automated Semantic Versioning with Jenkins for Spring Boot App
 
 
 This project demonstrates a Jenkins pipeline that automates Semantic Versioning (SemVer) for a Spring Boot application. The pipeline enables controlled, consistent, and automated version management, ensuring that every release follows the SemVer standard (major.minor.patch). 
